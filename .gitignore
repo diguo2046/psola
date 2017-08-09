@@ -1,0 +1,7 @@
+.DS_Store
+.aux
+.fls
+.pdf
+.fdb_latexmk
+.log
+.ipynb_checkpoints
