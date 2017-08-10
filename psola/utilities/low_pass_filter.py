@@ -37,7 +37,7 @@ def lpf(x, cutoff, fs, order=5):
     b, a = butter(order, cutoff / nyquist)
     if not np.all(np.abs(np.roots(a)) < 1):
         raise PsolaError('Filter with cutoff at {} Hz is unstable given '
-                         'sample frequency {}'.format(cutoff, fs))
+                         'sample frequency {} Hz'.format(cutoff, fs))
     filtered = filtfilt(b, a, x, method='gust')
     return filtered
 

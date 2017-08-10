@@ -30,3 +30,34 @@ or from the source directory
 and use the command line script to interface with the package
 
     psola_exec ...
+    
+Project Structure
+-----------------
+```
+psola
+│
+└───psola (source code)
+│   │   constants.py (constants used in project)
+│   │   errors.py (project specific exceptions)
+│   │   
+│   └───exec (holds executables)
+│   │   │   psola_exec (main script to run PSOLA implementation)
+│   │   
+│   └───pitch (modules for estimating and marking pitch)
+│   │   │   contour.py
+│   │   │   estimation.py 
+│   │   │   mark.py
+│   │
+│   └───plot (plotting routines)
+│   │
+│   └───utilities (functions not explicitly part of PSOLA)
+│   │   │   low_pass_filter.py (implements a standard LPF)
+│   │   │   center_clipping.py (center clipping for spectral whitening)
+│   │
+│   └───voice (detecting voiced and unvoiced regions)
+│   │   │   detection.py (segments voiced and unvoiced regions)
+│
+└───tests (unit tests)
+│   
+└───docs (documentation)
+```

@@ -1,6 +1,7 @@
 """
 psola.pitch.estimation
 
+Estimates pitch in a single speech frame
 
 Author: jreinhold
 Created on: Aug 09, 2017
@@ -9,59 +10,53 @@ Created on: Aug 09, 2017
 import numpy as np
 from scipy import signal
 
-from psola.psola.constants import MAX_PITCH_FREQ, MIN_PITCH_FREQ
+from psola.constants import PITCH_FRAME_SIZE, HNR_FRAME_SIZE
 
 
-def center_clipping(x, percent=30):
+def pitch_estimation(x, fs):
     """
-    Performs center clipping, a spectral whitening process
-
-    need some type of spectrum flattening so that the
-    speech signal more closely approximates a periodic impulse train
-
-    Args:
-        x       (array): signal data
-        percent (float): percent threshold to clip
-
-    Returns:
-        cc         (array): center clipped signal
-        clip_level (float): value of clipping
-    """
-    max_amp = np.max(np.abs(x))
-    clip_level = max_amp * (percent / 100)
-    positive_mask = x > clip_level
-    negative_mask = x < -clip_level
-    cc = np.zeros(x.shape)
-    cc[positive_mask] = x[positive_mask] - clip_level
-    cc[negative_mask] = x[negative_mask] + clip_level
-    return cc, clip_level
-
-
-def pitch_detection(x, fs):
-    """
-
+    Estimate pitch (fundamental frequency, F0) of a single frame
+    using autocorrelation
 
     Args:
         x  (array): signal data
         fs (float): sample frequency
 
     Returns:
-        pitch (float):
+        pitch (float): fundamental frequency in Hz
+        hnr   (float): harmonic-to-noise ratio (in dB), measure of quality
+
+    References:
+        [1] Boersma, P. (1993). Accurate Short-term Analysis of the Fundamental Frequency
+            and the Harmonics-to-Noise Ratio of a Samples Sound. IFA Proceedings Institute
+            of Phonetic Sciences Proceedings, 17(17), 97–110.
     """
-    # Pitch range
 
-    min_lag = np.round(fs / MAX_PITCH_FREQ)  # max freq corresponds to smallest lag
-    max_lag = np.round(fs / MIN_PITCH_FREQ)  # vice versa
+    # Hann window has best HNR values and least likely to change sounds [1]
+    window = signal.hann(len(x))
+    xw = x * window
 
-    cc = center_clipping(x)
-    auto_corr = signal.correlate(cc, cc)
-    pitch = 0
+    # calculate autocorrelation of windowed signal
+    ra = signal.correlate(xw, xw, method='full') / np.sum(xw * xw)  # normalize by 0th lag
 
-    return pitch
+    # calculate autocorrelation of window for accurate estimation
+    rw = signal.correlate(window, window)
 
+    # estimate original autocorrelation
+    rx = ra / rw
 
-def pitch_estimation():
-    pass
+    # find max cor value's lag <=> F0 (pitch)
+    i_h = len(rx) // 2      # index at half the data
+    rx_h = rx[i_h:]         # split data in half (remove redundancy)
+    i_max = rx_h.argmax()
+    lags = np.linspace(0, PITCH_FRAME_SIZE, len(rx_h))
+    pitch = lags[i_max]
+
+    # calculate HNR (harmonic-to-noise ratio)
+    peak = rx_h[i_max]
+    hnr = 10 * np.log10(peak / (1 - peak))
+
+    return pitch, hnr
 
 
 if __name__ == "__main__":
