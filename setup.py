@@ -1,4 +1,14 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+setup
+
+Module installs psola package
+Can be run via command: python setup.py install (or develop)
+
+Author: jreinhold
+Created on: Aug 09, 2017
+"""
 
 from setuptools import setup, find_packages
 
@@ -20,7 +30,7 @@ args = dict(
     license=license,
     packages=find_packages(exclude=('tests', 'docs')),
     install_requires=["numpy>=1.13.1", "scipy>=0.19.1"],
-    scripts=['exec/psola_exec'],
+    scripts=['psola/exec/psola_exec'],
     keywords="psola speech synthesis"
 )
 
