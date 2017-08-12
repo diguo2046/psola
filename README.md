@@ -37,7 +37,7 @@ Project Structure
 psola
 │
 └───psola (source code)
-│   │   constants.py (constants used in project)
+│   │   experiment_config.py (define parameters for a run)
 │   │   errors.py (project specific exceptions)
 │   │   
 │   └───exec (holds executables)

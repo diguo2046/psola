@@ -1,0 +1,9 @@
+language: python
+sudo: false
+python:
+    - 3.6
+install:
+    - python setup.py install
+    - pip install coverage
+script:
+    - nosetests -v --with-coverage --cover-tests --cover-package=psola tests
