@@ -21,7 +21,7 @@ with open('LICENSE') as f:
 
 args = dict(
     name='psola',
-    version='0.1.0',
+    version='0.0.0',
     description="Time-Domain Pitch-Synchronous OverLap-and-Add algorithm",
     long_description=readme,
     author='Jacob Reinhold',
@@ -29,7 +29,7 @@ args = dict(
     url='https://github.com/jcreinhold/psola',
     license=license,
     packages=find_packages(exclude=('tests', 'docs')),
-    install_requires=["numpy>=1.10", "scipy>=0.19", "nose"],
+    install_requires=["numpy", "scipy", "nose"],
     scripts=['psola/exec/psola_exec'],
     keywords="psola speech synthesis"
 )
