@@ -29,7 +29,7 @@ args = dict(
     url='https://github.com/jcreinhold/psola',
     license=license,
     packages=find_packages(exclude=('tests', 'docs')),
-    install_requires=["numpy>=1.13.1", "scipy>=0.19.1", "nose"],
+    install_requires=["numpy>=1.10", "scipy>=0.19", "nose"],
     scripts=['psola/exec/psola_exec'],
     keywords="psola speech synthesis"
 )

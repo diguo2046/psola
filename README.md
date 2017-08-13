@@ -1,10 +1,10 @@
 psola
 =====
 
-<!--[![Inline docs](http://inch-ci.org/github/{ORG-or-USERNAME}/{REPO-NAME}.svg?branch=master)](http://inch-ci.org/github/{ORG-or-USERNAME}/{REPO-NAME})-->
 [![Build Status](https://travis-ci.org/jcreinhold/psola.png?branch=master)](https://travis-ci.org/jcreinhold/psola)
+[![Coverage Status](https://coveralls.io/repos/github/jcreinhold/psola/badge.svg?branch=master)](https://coveralls.io/github/jcreinhold/psola?branch=master)
 [![Code Climate](https://codeclimate.com/github/jcreinhold/psola/badges/gpa.svg)](https://codeclimate.com/github/jcreinhold/psola)
-[![Test Coverage](https://codeclimate.com/github/jcreinhold/psola/badges/coverage.svg)](https://codeclimate.com/github/jcreinhold/psola/coverage)
+[![Issue Count](https://codeclimate.com/github/jcreinhold/psola/badges/issue_count.svg)](https://codeclimate.com/github/jcreinhold/psola)
 
 Implements the TD-PSOLA algorithm.
 
@@ -44,9 +44,9 @@ psola
 │   │   │   psola_exec (main script to run PSOLA implementation)
 │   │   
 │   └───pitch (modules for estimating and marking pitch)
-│   │   │   contour.py
-│   │   │   estimation.py 
-│   │   │   mark.py
+│   │   │   estimation.py (estimates pitch for a speech time series)
+│   │   │   mark.py (marks pitch periods)
+│   │   │   pitch_config.py (holds data and experiemental params)
 │   │
 │   └───plot (plotting routines)
 │   │
