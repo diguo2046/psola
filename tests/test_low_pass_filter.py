@@ -18,7 +18,7 @@ class TestLowPassFilter(unittest.TestCase):
 
     def setUp(self):
         self.fs = 2000
-        t = np.linspace(0, 1.0, self.fs)
+        t = np.linspace(0, 1.0, 2**11)  # make 2^n for computational efficiency
         xlow = np.sin(2 * np.pi * 5 * t)
         xhigh = np.sin(2 * np.pi * 250 * t)
         self.x = xlow + xhigh
