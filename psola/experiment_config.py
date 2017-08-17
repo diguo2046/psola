@@ -20,8 +20,8 @@ class ExperimentConfig(object):
     def __init__(self, config_file=None,
                  min_pitch=75, max_pitch=500,
                  frame_step=0.010, dlog2p=1/48,
-                 dERBs=0.1, window_overlap=0.5,
-                 pitch_strength_thresh=-100):
+                 dERBs=1/20, window_overlap=0.5,
+                 pitch_strength_thresh=0.2):
         """
         initialize instance of experiment configuration,
         default values come from [1]

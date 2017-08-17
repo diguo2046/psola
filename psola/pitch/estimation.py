@@ -47,7 +47,7 @@ def pitch_estimation(x, fs, cfg):
             https://doi.org/10.1121/1.2951592
     """
     dt = cfg.frame_step  # define time resolution of pitch estimation
-    t = np.arange(0, x.size / np.float_(fs) + dt, dt)
+    times = np.arange(0, x.size / np.float_(fs), dt)
 
     # define pitch candidates, lp := log2(pitch)
     lp_min, lp_max = np.log2(cfg.min_pitch), np.log2(cfg.max_pitch)
@@ -56,7 +56,7 @@ def pitch_estimation(x, fs, cfg):
     pitch_candidates = 2 ** lp_candidates.T
 
     # pitch strength matrix
-    S = np.zeros((pitch_candidates.size, t.size))
+    S = np.zeros((pitch_candidates.size, times.size))
 
     # determine power-of-2 window-sizes (P2-WSs)
     lws = np.round(np.log2(8 * fs / np.array([cfg.min_pitch, cfg.max_pitch])))
@@ -67,7 +67,7 @@ def pitch_estimation(x, fs, cfg):
     window_size = 1 + lp_candidates - np.log2(8 * fs / wss[0])
 
     # create ERB-scale uniformly-spaced freqs (Hz)
-    min_hz = hz2erbs(pitch_candidates.min() / 4)  # TODO: why divide by 4
+    min_hz = hz2erbs(pitch_candidates.min() / 4)  # TODO: why divide by 4?
     max_hz = hz2erbs(fs / 2)  # Nyquist freq
     hz_scale = np.arange(min_hz, max_hz, cfg.dERBs)
     f_erbs = erbs2hz(hz_scale)
@@ -90,9 +90,9 @@ def pitch_estimation(x, fs, cfg):
         spec_kwargs = dict(x=xzp, fs=fs, window=w, nperseg=w.size,
                            noverlap=noverlap, nfft=int(ws),
                            scaling='spectrum', mode='complex')
-        f, ti, X = signal.spectrogram(**spec_kwargs)
+        freqs, ti, X = signal.spectrogram(**spec_kwargs)
 
-        # Note: this is very opaque, TODO: test all branches
+        # Note: this is very opaque, learn what this is doing and provide explanation
         # select candidates that use this window size
         # np.squeeze used to remove single-dimension entries from array
         ii = i + 1
@@ -106,13 +106,13 @@ def pitch_estimation(x, fs, cfg):
             j = find(window_size-ii < 1)
             k = find(window_size[j]-ii > 0)
         else:
-            j = find(np.abs(window_size-ii < 1))
-            k = np.arange(0, j)  # somehow j is one a single elmt?
+            j = find(np.abs(window_size-ii) < 1)
+            k = np.arange(0, j.size)
 
         # compute loudness at ERBs uniformly-spaced freqs
         idx = find(f_erbs > pitch_candidates[j[0]]/4)[0]
         f_erbs = f_erbs[idx:]
-        f = interp1d(f, np.abs(X), axis=0, kind='cubic', fill_value=0)  # interp on columns
+        f = interp1d(freqs, np.abs(X), axis=0, kind='cubic', fill_value=0)  # interp on columns
         interpd_X = f(f_erbs)
         interpd_X[interpd_X < 0] = 0
         L = np.sqrt(interpd_X)
@@ -120,12 +120,15 @@ def pitch_estimation(x, fs, cfg):
         # compute pitch strength
         Si_ = pitch_strength_all_candidates(f_erbs, L, pitch_candidates[j])
 
+        # replicate matlab behavior with ti, default extends one elem too far and doesn't include 0
+        # default ti makes the interp1d stage not work, since 0 is not included
+        ti = np.concatenate((np.zeros(1), ti[:-1]))
         # interpolate pitch strength at desired times
         if Si_.shape[1] > 1:
             f = interp1d(ti, Si_.T, axis=0, kind='linear', fill_value=np.nan)
-            Si = f(t)
+            Si = f(times).T
         else:
-            Si = np.empty(Si_.shape[0], t.size) * np.nan  # TODO: test this line
+            Si = np.empty((Si_.shape[0], times.size)) * np.nan  # TODO: test this line
 
         # add pitch strength to combination
         lambda_ = window_size[j[k]] - (i + 1)
@@ -133,33 +136,33 @@ def pitch_estimation(x, fs, cfg):
         mu[k] = 1 - np.abs(lambda_)
         S[j, :] = S[j, :] + np.tile(mu, (Si.shape[1], 1)).T * Si
 
-        # fine-tune pitch using parabolic interp
-        pitch = np.empty(S.shape[1]) * np.nan
-        strength = np.empty(S.shape[1]) * np.nan
-        for j in range(S.shape[1]):
-            strength[j] = np.nanmax(S[:, j])
-            i = np.nanargmax(S[:, j])
-            if strength[j] < cfg.pitch_strength_thresh:
-                continue
-            if i == 0 or i == pitch_candidates.size - 1:
-                pitch[j] = pitch_candidates[i]
-            else:
-                I = np.arange(i - 1, i + 2)  # funky additions to mimic MATLAB
-                tc = 1 / pitch_candidates[I]
-                ntc = (tc / tc[1] - 1) * 2 * np.pi
-                c = np.polyfit(ntc, S[I, j], 2)
-                # TODO: why are these params hardcoded and what is meaning?
-                ftc_low = np.log2(pitch_candidates[I[0]])
-                ftc_high = np.log2(pitch_candidates[I[2]])
-                ftc_step = 1/12/100
-                ftc = 1 / 2 ** np.arange(ftc_low, ftc_high, ftc_step)
-                nftc = (ftc/tc[1] - 1) * 2 * np.pi
-                polyfit_nftc = np.polyval(c, nftc)
-                strength[j] = np.nanmax(polyfit_nftc)
-                k = np.argmax(polyfit_nftc)
-                pitch[j] = 2 ** (ftc_low + (k - 1) / 12 / 100)
+    # fine-tune pitch using parabolic interp
+    pitch = np.empty(S.shape[1]) * np.nan
+    strength = np.empty(S.shape[1]) * np.nan
+    for j in range(S.shape[1]):
+        strength[j] = np.nanmax(S[:, j])
+        i = np.nanargmax(S[:, j])
+        if strength[j] < cfg.pitch_strength_thresh:
+            continue
+        if i == 0 or i == pitch_candidates.size - 1:
+            pitch[j] = pitch_candidates[i]
+        else:
+            I = np.arange(i - 1, i + 2)  # funky additions to mimic MATLAB
+            tc = 1 / pitch_candidates[I]
+            ntc = (tc / tc[1] - 1) * 2 * np.pi
+            c = np.polyfit(ntc, S[I, j], 2)
+            # TODO: why are these params hardcoded and what is meaning?
+            ftc_low = np.log2(pitch_candidates[I[0]])
+            ftc_high = np.log2(pitch_candidates[I[2]])
+            ftc_step = 1/12/100
+            ftc = 1 / 2 ** np.arange(ftc_low, ftc_high, ftc_step)
+            nftc = (ftc/tc[1] - 1) * 2 * np.pi
+            polyfit_nftc = np.polyval(c, nftc)
+            strength[j] = np.nanmax(polyfit_nftc)
+            k = np.argmax(polyfit_nftc)
+            pitch[j] = 2 ** (ftc_low + (k - 1) / 12 / 100)
 
-        return pitch, t, strength
+    return pitch, times, strength
 
 
 def pitch_strength_all_candidates(f_erbs, L, pc):
@@ -333,12 +336,31 @@ def find(x):
 
 
 def test():
-    from psola.experiment_config import ExperimentConfig
+    """
+    little test, put target filename as first and only argument
+    will plot the pitch and strength v. time to screen
+    safety is not guaranteed.
+    """
+    # imports specific to this test
+    import sys
+    import warnings
     from scipy.io import wavfile
-    cfg = ExperimentConfig()
-    filename = '/Users/jreinhold/Research/emotion-manipulation/tmp/sager-data/misc_sounds/twelve/twelve n.wav'
-    fs, data = wavfile.read(filename)
+    import matplotlib.pyplot as plt
+    from psola.experiment_config import ExperimentConfig
+
+    # get the data and do the estimation
+    filename = sys.argv[1]    # filename is first command line arg
+    cfg = ExperimentConfig()  # use default settings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")  # ignore annoying WavFileWarning
+        fs, data = wavfile.read(filename)
     pitch, t, strength = pitch_estimation(data, fs, cfg)
+
+    # Plot estimated pitch and strength of pitch values
+    f, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(16,9))
+    ax1.plot(t, pitch); ax1.set_title('Pitch v. Time'); ax1.set_ylabel('Freq (Hz)')
+    ax2.plot(t, strength); ax2.set_title('Strength v. Time'); ax1.set_ylabel('Strength')
+    plt.show()
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 """
-tests.test_low_pass_filter
+tests.test_utilities
 
-unit test for psola.utilities.low_pass_filter
+unit test for psola.utilities module
 
 Author: jreinhold
 Created on: Aug 10, 2017
@@ -12,6 +12,7 @@ import unittest
 import numpy as np
 
 from psola.utilities.low_pass_filter import lpf
+from psola.utilities.center_clipping import center_clipping
 
 
 class TestLowPassFilter(unittest.TestCase):
@@ -25,7 +26,9 @@ class TestLowPassFilter(unittest.TestCase):
 
     def test_low_pass_filter(self):
         """
-        filter sinusoid with 5 Hz and 250 Hz component with
+        check that low pass filter has expected behavior
+
+        filter sinusoid with 5 Hz and 250 Hz component (see setUp method)
         with 125 Hz cutoff lpf, the magnitude of the 5 Hz signal
         should be highest
         """
@@ -38,6 +41,21 @@ class TestLowPassFilter(unittest.TestCase):
 
     def tearDown(self):
         del self.fs, self.x
+
+
+class TestCenterClipping(unittest.TestCase):
+
+    def setUp(self):
+        self.x = np.arange(11)  # create array from 0 to 10
+
+    def test_center_clipping(self):
+        cc, clip_level = center_clipping(self.x, percent=30)
+        truth = np.array([0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7])
+        self.assertEqual(clip_level, 3)
+        self.assertTrue(np.array_equal(cc, truth))
+
+    def tearDown(self):
+        del self.x
 
 
 if __name__ == '__main__':
