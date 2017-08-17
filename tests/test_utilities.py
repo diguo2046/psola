@@ -11,6 +11,7 @@ import unittest
 
 import numpy as np
 
+from psola.errors import PsolaError
 from psola.utilities.low_pass_filter import lpf
 from psola.utilities.center_clipping import center_clipping
 
@@ -38,6 +39,10 @@ class TestLowPassFilter(unittest.TestCase):
         max_idx = np.argmax(mag)
         tol = freqs[1] - freqs[0]
         self.assertTrue(np.isclose(5, freqs[max_idx], rtol=tol))
+
+    def test_low_pass_filter_fail(self):
+        """ check that filter raises exception properly """
+        self.assertRaises(PsolaError, lpf, self.x, self.fs/2, self.fs)
 
     def tearDown(self):
         del self.fs, self.x

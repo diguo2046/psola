@@ -323,7 +323,7 @@ def primes_2_to_n(n):
 
 def find(x):
     """
-    tries to kind-of mimic the find command in matlab,
+    kind-of mimics the find command in matlab,
     really created to avoid repetition in code
 
     Args:
@@ -337,7 +337,7 @@ def find(x):
 
 def test():
     """
-    little test, put target filename as first and only argument
+    little test, NOT FOR REAL USE, put target filename as first and only argument
     will plot the pitch and strength v. time to screen
     safety is not guaranteed.
     """

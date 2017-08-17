@@ -40,7 +40,3 @@ def lpf(x, cutoff, fs, order=5):
                          'sample frequency {} Hz'.format(cutoff, fs))
     filtered = filtfilt(b, a, x, method='gust')
     return filtered
-
-
-if __name__ == "__main__":
-    pass

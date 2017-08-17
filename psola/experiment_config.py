@@ -24,7 +24,7 @@ class ExperimentConfig(object):
                  pitch_strength_thresh=0.2):
         """
         initialize instance of experiment configuration,
-        default values come from [1]
+        default values come from code associated with [1]
 
         if json file is used, the user needs to verify that
         key values match attribute names
@@ -43,9 +43,10 @@ class ExperimentConfig(object):
             pitch_strength_thresh (float): discard samples with pitch strength
                                              lower than this value
         References:
-            [1] Boersma, P. (1993). Accurate Short-term Analysis of the Fundamental Frequency
-                and the Harmonics-to-Noise Ratio of a Samples Sound. IFA Proceedings Institute
-                of Phonetic Sciences Proceedings, 17(17), 97–110.
+            [1] Camacho, A., & Harris, J. G. (2008). A sawtooth waveform
+                inspired pitch estimator for speech and music. The Journal
+                of the Acoustical Society of America, 124(3), 1638–1652.
+                https://doi.org/10.1121/1.2951592
         """
 
         self.min_pitch = min_pitch
@@ -63,7 +64,3 @@ class ExperimentConfig(object):
                 config = json.load(f)
             for key, val in config.items():
                 setattr(self, key, val)
-
-
-if __name__ == "__main__":
-    pass

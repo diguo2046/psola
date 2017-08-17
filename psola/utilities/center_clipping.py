@@ -35,7 +35,3 @@ def center_clipping(x, percent=30):
     cc[positive_mask] = x[positive_mask] - clip_level
     cc[negative_mask] = x[negative_mask] + clip_level
     return cc, clip_level
-
-
-if __name__ == "__main__":
-    pass
