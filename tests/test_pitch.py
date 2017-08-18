@@ -17,9 +17,6 @@ from psola.experiment_config import ExperimentConfig
 
 class TestPitchEstimation(unittest.TestCase):
 
-    def setUp(self):
-        pass
-
     def test_erbs2hz(self):
         """
         test my erbs2hz function against the MATLAB version
@@ -53,11 +50,6 @@ class TestPitchEstimation(unittest.TestCase):
                                     167, 173, 179, 181, 191, 193, 197, 199])
         self.assertTrue(np.array_equal(primes_2_to_200, pest.primes_2_to_n(200)))
 
-    def test_find(self):
-        """ test the `find' implementation """
-        x = np.arange(1, 5)
-        self.assertEqual(pest.find(x > 2).shape, (2,))
-
     def test_pitch_estimation(self):
         """
         test pitch estimation algo with contrived small example
@@ -74,9 +66,6 @@ class TestPitchEstimation(unittest.TestCase):
         # estimate the pitch, it should be close to f
         p, t, s = pest.pitch_estimation(x, fs, cfg)
         self.assertTrue(np.all(np.abs(p - f) < tolerance))
-
-    def tearDown(self):
-        pass
 
 
 if __name__ == '__main__':

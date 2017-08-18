@@ -24,8 +24,10 @@ import numpy as np
 from scipy import signal
 from scipy.interpolate import interp1d
 
+from psola.utilities.find import find
 
-def pitch_estimation(x, fs, cfg):
+
+def pitch_estimation(x, fs, cfg=None):
     """
     Estimates pitch for a time-series, implements SWIPE algorithm
     see [1] for more details
@@ -33,7 +35,9 @@ def pitch_estimation(x, fs, cfg):
     Args:
         x   (array): real-valued numpy array (e.g., speech signal)
         fs  (float): sampling frequency of x
-        cfg (psola.experiment_config.ExperimentConfig instance)
+        cfg (psola.experiment_config.ExperimentConfig instance),
+            None is default (will use default params if cfg instance
+            not provided)
 
     Returns:
         pitch    (array): pitch corresponding to times
@@ -46,6 +50,11 @@ def pitch_estimation(x, fs, cfg):
             of the Acoustical Society of America, 124(3), 1638–1652.
             https://doi.org/10.1121/1.2951592
     """
+    # supply default params if user does not provide specified config file
+    if cfg is None:
+        from psola.experiment_config import ExperimentConfig
+        cfg = ExperimentConfig()
+
     dt = cfg.frame_step  # define time resolution of pitch estimation
     times = np.arange(0, x.size / np.float_(fs), dt)
 
@@ -320,19 +329,6 @@ def primes_2_to_n(n):
             sieve[int(k * (k - 2 * (i & 1) + 4) / 3)::2 * k] = False
     return np.r_[2, 3, ((3 * np.nonzero(sieve)[0][1:] + 1) | 1)]
 
-
-def find(x):
-    """
-    kind-of mimics the find command in matlab,
-    really created to avoid repetition in code
-
-    Args:
-        x (numpy mask): condition, e.g., x < 5
-
-    Returns:
-        indices where x is true
-    """
-    return np.squeeze(np.where(x))
 
 
 def test():

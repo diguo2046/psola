@@ -14,6 +14,7 @@ import numpy as np
 from psola.errors import PsolaError
 from psola.utilities.low_pass_filter import lpf
 from psola.utilities.center_clipping import center_clipping
+from psola.utilities.find import find
 
 
 class TestLowPassFilter(unittest.TestCase):
@@ -44,23 +45,23 @@ class TestLowPassFilter(unittest.TestCase):
         """ check that filter raises exception properly """
         self.assertRaises(PsolaError, lpf, self.x, self.fs/2, self.fs)
 
-    def tearDown(self):
-        del self.fs, self.x
-
 
 class TestCenterClipping(unittest.TestCase):
 
-    def setUp(self):
-        self.x = np.arange(11)  # create array from 0 to 10
-
     def test_center_clipping(self):
-        cc, clip_level = center_clipping(self.x, percent=30)
+        x = np.arange(11)  # create array from 0 to 10
+        cc, clip_level = center_clipping(x, percent=30)
         truth = np.array([0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7])
         self.assertEqual(clip_level, 3)
         self.assertTrue(np.array_equal(cc, truth))
 
-    def tearDown(self):
-        del self.x
+
+class TestFind(unittest.TestCase):
+
+    def test_find(self):
+        """ test the `find' implementation """
+        x = np.arange(1, 5)
+        self.assertEqual(find(x > 2).shape, (2,))
 
 
 if __name__ == '__main__':
